@@ -1,17 +1,8 @@
 
 <template>
   <div>
-    <span>ea app</span>
     <input type="file" id="upload" @change="onFileChange" />
     <br />
-    <input type="button" value="相对" @click="setBoxes" />
-    <input type="button" value="绝对" @click="setMessBox" />
-    <input
-      type="text"
-      placeholder="请输入绝对浓度"
-      v-model="messBoxDensity"
-      @change="canvasRefresh"
-    /><span>ng/μL</span>
     <input type="button" value="清除画布" @click="canvasClean" /><input
       type="text"
       placeholder="有效数字位数"
@@ -19,30 +10,23 @@
       @change="canvasRefresh"
     />
     <br />
-    
-    
     <canvas
       id="canvas"
       @mousedown="canvasMouseDown"
       @mouseup="canvasMouseUp"
       @mousemove="canvasMouseMove"
     ></canvas>
-    <VueCropper></VueCropper>
   </div>
 </template>
 <script>
-import { VueCropper } from "vue-cropper";
 
 export default {
   name: "EAnalyzer",
   components: {
-    VueCropper,
   },
   props: {},
   data() {
     return {
-      messBox: null,
-      messBoxSelect: false,
       validNum : 4,
       boxes: [],
       canvas: {},
@@ -84,24 +68,14 @@ export default {
       this.ctx.lineWidth = 2;
 
       for (var i = -1; i < this.boxes.length; i++) {
-        var box;
-        if (i == -1) {
-          box = this.messBox;
-          this.ctx.fillStyle = "green";
-          this.ctx.strokeStyle = "green";
-        } else {
-          box = this.boxes[i];
+        var box= this.boxes[i];
           this.ctx.fillStyle = "red";
           this.ctx.strokeStyle = "red";
-        }
         if (box != null) {
           this.ctx.strokeRect(box.x, box.y, box.w, box.h);
           var gr = this.getAreaGreyValue(box); //在绘制rect之前获取灰度值
-          if (this.messBox != null && this.messBoxDensity != null) {
-            gr = ((gr * this.messBoxDensity) / this.messBoxGrey).toPrecision(this.validNum) ;
-          }else{
-            gr = gr.toPrecision(this.validNum);
-          }
+          gr = gr.toPrecision(this.validNum);
+          
           if (box.w < 40 || box.h < 25) {
             this.ctx.fillRect(box.x, box.y - 25, 40, 25);
             this.ctx.fillStyle = "white";
@@ -139,32 +113,19 @@ export default {
       this.startX = e.offsetX;
       this.startY = e.offsetY;
       this.isDrawing = true;
-      if (this.messBoxSelect) {
-        this.ctx.strokeStyle = "green";
-      } else {
-        this.ctx.strokeStyle = "red";
-      }
+      this.ctx.strokeStyle = "red";
       this.ctx.lineWidth = 2;
     },
     canvasMouseUp(e) {
       this.isDrawing = false;
-      if (this.messBoxSelect) {
-        this.messBox = {
-          x: this.startX,
-          y: this.startY,
-          w: e.offsetX - this.startX,
-          h: e.offsetY - this.startY,
-        };
-      } else {
         this.boxes.push({
           x: this.startX,
           y: this.startY,
           w: e.offsetX - this.startX,
           h: e.offsetY - this.startY,
         });
-      }
-
       this.canvasRefresh();
+      console.log(this.validNum)
     },
     canvasMouseMove(e) {
       if (this.isDrawing) {
@@ -175,17 +136,6 @@ export default {
           e.offsetY - this.startY
         );
       }
-    },
-    setBoxes() {
-      this.messBoxSelect = false;
-    },
-    setMessBox() {
-      this.messBoxSelect = true;
-    },
-  },
-  computed: {
-    messBoxGrey() {
-      return this.getAreaGreyValue(this.messBox);
     },
   },
 };

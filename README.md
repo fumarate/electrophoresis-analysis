@@ -1,4 +1,6 @@
 # electrophoresis-analysis
+## Introduction
+Small tool for analyzing the photos taken in electrophoresis written in Vue.
 
 ## Project setup
 ```
